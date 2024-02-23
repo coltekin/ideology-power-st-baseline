@@ -37,7 +37,7 @@ for pcode in args.parliaments:
     m.fit(x_trn, y_trn)
     pred = m.predict(x_val)
     p, r, f, _ = precision_recall_fscore_support(
-            y_val, pred, average='macro')
+            y_val, pred, average='macro', zero_division=0.0)
     print(f"{pcode}: {100*p:.4f} / {100*r:.4f} / {100*f:.4f}"
           f" [{time.time() - start:.2f}s]")
 
