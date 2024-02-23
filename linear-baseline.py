@@ -16,6 +16,7 @@ ap = argparse.ArgumentParser()
 ap.add_argument('parliaments', nargs="+")
 ap.add_argument('--task', '-t', default='power')
 ap.add_argument('--data-dir', '-d', default='data')
+ap.add_argument('--C', '-C', type=int, default=1)
 args = ap.parse_args()
 args.parliaments = [x.lower() for x in args.parliaments]
 
@@ -33,7 +34,7 @@ for pcode in args.parliaments:
                           ngram_range=(1,3))
     x_trn = vec.fit_transform(t_trn)
     x_val = vec.transform(t_val)
-    m = LogisticRegression()
+    m = LogisticRegression(max_iter=500, C=args.C)
     m.fit(x_trn, y_trn)
     pred = m.predict(x_val)
     p, r, f, _ = precision_recall_fscore_support(
@@ -46,7 +47,7 @@ for pcode in args.parliaments:
     test_file = os.path.join(args.data_dir, args.task,
                               f"{args.task}-{pcode}-test.tsv")
     if os.path.exists(test_file):
-        id_test, t_test = get_data(test_file, testset=True)
+        id_test, t_test, _ = get_data(test_file, testset=True)
         x_test = vec.transform(t_test)
         test_pred = m.predict_proba(x_test)
         teamname = "baseline"
