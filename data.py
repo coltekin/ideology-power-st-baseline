@@ -4,6 +4,7 @@
 See shared task web page <https://touche.webis.de/clef24/touche24-web/ideology-and-power-identification-in-parliamentary-debates.html>
 for details.
 """
+import sys
 import csv
 csv.field_size_limit(sys.maxsize)
 from sklearn.model_selection import train_test_split
