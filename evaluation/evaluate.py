@@ -8,6 +8,7 @@ import re
 import csv
 import numpy as np
 from sklearn.metrics import precision_recall_fscore_support
+from tira.io_utils import to_prototext
 
 GOLD = os.environ.get('inputDataset', 'reference')
 PRED = os.environ.get('inputRun', 'predictions')
@@ -105,26 +106,20 @@ if __name__ == "__main__":
         sys.exit(-1)
 
     with open(os.path.join(args.outdir, 'evaluation.prototext'), 'wt') as outf:
+        ret = {}
+        
         pow_p, pow_r, pow_f = np.mean(
                 [scores[x] for x in scores if x[0] == 'power'],
                 axis=0)
         ori_p, ori_r, ori_f = np.mean(
                 [scores[x] for x in scores if x[0] == 'orientation'],
                 axis=0)
-        print(f'measure{{\n  key: "F1_orientation"\n  value: "{ori_f}\n}}',
-                file=outf)
-        print(f'measure{{\n  key: "F1_power"\n  value: "{pow_f}\n}}',
-                file=outf)
+        ret['F1_orientation'] = ori_f
+        ret['F1_power'] = pow_f
         for sc in sorted(scores):
             task, parl = sc
             for k, m in zip(("Precision", "Recall", "F1"), scores[sc]):
-                print(f'measure{{\n  key: "{k}_{task}_{parl}:"\n  value: "{m}\n}}',
-                        file=outf)
+                ret[f'{k}_{task}_{parl}'] = m
+         
+        outf.write(to_prototext([ret]))
 
-#        print(f"team\ttask\tparliament\trun"
-#              f"\tprecision\trecall\tf1", file=outf)
-#        for sc in scores:
-#            team, task, parl, run = sc
-#            p, r, f = scores[sc]
-#            print(f"{team}\t{task}\t{parl}\t{run}"
-#                  f"\t{p}\t{r}\t{f}", file=outf)
