@@ -121,5 +121,5 @@ if __name__ == "__main__":
             for k, m in zip(("Precision", "Recall", "F1"), scores[sc]):
                 ret[f'{k}_{task}_{parl}'] = m
          
-         outf.write(to_prototext([ret]))
+        outf.write(to_prototext([ret]))
 
