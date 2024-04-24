@@ -1,10 +1,11 @@
-id1	Sentence 1	Translation 1
-id2	Sentence 2	Translation 2
-id3	Sentence 3	Translation 3
-id4	Sentence 4	Translation 4
-id5	Sentence 5	Translation 5
-id6	Sentence 6	Translation 6
-id7	Sentence 7	Translation 7
-id8	Sentence 8	Translation 8
-id9	Sentence 9	Translation 9
-id10	Sentence 10	Translation 10
+id	text	text_en	sex
+id1	Sentence 1	Translation 1	M
+id2	Sentence 2	Translation 2	F
+id3	Sentence 3	Translation 3	F
+id4	Sentence 4	Translation 4	M
+id5	Sentence 5	Translation 5	F
+id6	Sentence 6	Translation 6	M
+id7	Sentence 7	Translation 7	F
+id8	Sentence 8	Translation 8	M
+id9	Sentence 9	Translation 9	M
+id10	Sentence 10	Translation 10	M

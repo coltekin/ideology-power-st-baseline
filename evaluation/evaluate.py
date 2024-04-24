@@ -107,7 +107,6 @@ if __name__ == "__main__":
 
     with open(os.path.join(args.outdir, 'evaluation.prototext'), 'wt') as outf:
         ret = {}
-        
         pow_p, pow_r, pow_f = np.mean(
                 [scores[x] for x in scores if x[0] == 'power'],
                 axis=0)
@@ -119,7 +118,7 @@ if __name__ == "__main__":
         for sc in sorted(scores):
             task, parl = sc
             for k, m in zip(("Precision", "Recall", "F1"), scores[sc]):
-                ret[f'{k}_{task}_{parl}'] = m
+                ret[f'{k}_{task}_{parl.upper()}'] = m
          
         outf.write(to_prototext([ret]))
 
