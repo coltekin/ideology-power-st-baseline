@@ -33,7 +33,7 @@ submission example. To submit the run, you should create a zip archive
 with the contents of the direcotry (only files, without additional
 folders/directories) and submit your run through web interface at
 <https://www.tira.io/task-overview/ideology-and-power-identification-in-parliamentary-debates-2024>
-or thorough CLI as instructed in the submission web page.
+or thorough CLI as instructed in the submission web page. 
 
 ## Running the evaluator locally
 
