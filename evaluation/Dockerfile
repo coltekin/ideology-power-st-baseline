@@ -1,4 +1,3 @@
-# docker build -t webis/tira-hf-evaulator:0.0.3 .
 FROM python:3-slim
 
 COPY requirements.txt /requirements.txt
