@@ -107,12 +107,13 @@ if __name__ == "__main__":
 
     with open(os.path.join(args.outdir, 'evaluation.prototext'), 'wt') as outf:
         ret = {}
-        pow_p, pow_r, pow_f = np.mean(
-                [scores[x] for x in scores if x[0] == 'power'],
-                axis=0)
-        ori_p, ori_r, ori_f = np.mean(
-                [scores[x] for x in scores if x[0] == 'orientation'],
-                axis=0)
+        ori_f, pow_f = 0.0, 0.0
+        pscores = [scores[x] for x in scores if x[0] == 'power']
+        if len(pscores) > 0:
+            pow_p, pow_r, pow_f = np.mean(pscores, axis=0)
+        oscores = [scores[x] for x in scores if x[0] == 'orientation']
+        if len(oscores) > 0:
+            ori_p, ori_r, ori_f = np.mean(oscores, axis=0)
         ret['F1_orientation'] = ori_f
         ret['F1_power'] = pow_f
         for sc in sorted(scores):
