@@ -11,16 +11,17 @@ import joblib
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import precision_recall_fscore_support
-from data import get_data
+from data import read_data
 import numpy as np
 from multiprocessing import Pool
+from parliaments import * 
 
 DATADIR = os.environ.get('inputDataset', 'data')
 PREDDIR = os.environ.get('outputDir', 'predictions')
 
 ap = argparse.ArgumentParser()
 ap.add_argument('parliaments', nargs="+")
-ap.add_argument('--task', '-t', choices=['power', 'orientation'],
+ap.add_argument('--task', '-t', choices=['power', 'orientation', 'populism'],
         action='append')
 ap.add_argument('--data-dir', '-d', default=DATADIR)
 ap.add_argument('--C', '-C', type=int, default=1)
@@ -45,10 +46,9 @@ def predict(pcode):
     def write_predictions(m, task, pcode):
         # If the corresponding test file exists, create the submission
         # file with predictions.
-        test_file = os.path.join(args.data_dir, task,
-                                  f"{task}-{pcode}-test.tsv")
+        test_file = os.path.join(args.data_dir, f"{pcode}-test.tsv")
         if os.path.exists(test_file):
-            id_test, t_test, _ = get_data(test_file, testset=True)
+            id_test, t_test, _ = read_data(test_file, task=task, testset=True)
             x_test = vec.transform(t_test)
             test_pred = m.predict_proba(x_test)
             pred_file = f"{args.teamname}-{task}-{pcode}-predictions.tsv"
@@ -57,6 +57,9 @@ def predict(pcode):
                 for i, p in enumerate(test_pred):
                     print(f"{id_test[i]}\t{p[1]}", file=fpred)
     for task in args.task:
+        if not parl_task[pcode][task]:
+            print(f"{pcode}/{task}: skipping, no training data.")
+            continue
         if args.load_models:
             try:
                 model_file = f"{task}-{pcode}.joblib"
@@ -71,8 +74,7 @@ def predict(pcode):
             # Train a logistic regression classifier, and print evaluation
             # metrics on a held-out data split.
             start = time.time()
-            train_file = os.path.join(args.data_dir, task,
-                                      f"{task}-{pcode}-train.tsv")
+            train_file = os.path.join(args.data_dir, f"{pcode}-train.tsv")
             if not os.path.exists(train_file):
                 print(f"{pcode}: skipping, no training data.")
                 return
@@ -80,10 +82,13 @@ def predict(pcode):
             best_F = 0.0
             for i in range(args.repeat):
                 if pcode != "gb" and args.en_translation:
-                    t_trn, y_trn, t_val, y_val = get_data(train_file,
-                            text_head='text_en')
+                    t_trn, y_trn, t_val, y_val = read_data(train_file,
+                            task=task, text_head='text_en')
                 else:
-                    t_trn, y_trn, t_val, y_val = get_data(train_file)
+                    t_trn, y_trn, t_val, y_val = read_data(train_file,
+                                                           task=task)
+                if len(t_trn) == 0:
+                    print(f"{pcode}/{task}: empty training set.")
                 vec = TfidfVectorizer(sublinear_tf=True, analyzer="char",
                                       ngram_range=(1,3))
                 x_trn = vec.fit_transform(t_trn)
@@ -103,7 +108,8 @@ def predict(pcode):
                     write_predictions(m, task, pcode)
                 if args.repeat == 1:
                     p, r, f = P[0], R[0], F[0]
-                    print(f"{pcode}: {100*p:.4f} / {100*r:.4f} / {100*f:.4f}"
+                    print(f"{pcode:5} {task:11}"
+                          f" {100*p:.4f} / {100*r:.4f} / {100*f:.4f}"
                           f" [{time.time() - start:.2f}s]")
                 else:
                     p, psd = np.mean(P), np.std(P)
