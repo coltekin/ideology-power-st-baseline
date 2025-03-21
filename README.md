@@ -18,6 +18,8 @@ all datasets and all parliaments, you can use:
 python3 linear-baseline.py -s models -t power -t orientation -t populism -p output all
 ```
 This will also save the trained models under `models/`,
-and test file predictions under `predictions/`,
+and test file predictions under `output/`,
 which are in the expected format for the submission.
-Further information on submission system will be provided later.
+To run the baseline on the trial data add `-d sample-data` to the
+command line.
+Further information on submission system will be provided soon.
