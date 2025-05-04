@@ -9,6 +9,7 @@ import csv
 import numpy as np
 from sklearn.metrics import precision_recall_fscore_support
 from tira.io_utils import to_prototext
+from parliaments import parl_task
 
 GOLD = os.environ.get('inputDataset', 'reference')
 PRED = os.environ.get('inputRun', 'predictions')
@@ -17,25 +18,17 @@ OUTD = os.environ.get('outputDir', '.')
 pred_re = re.compile(
     r"(?P<team>[^-]+)-(?P<task>[^-]+)-(?P<parl>[^-]{2}(-[^-]{2})?)-(?P<run>[^-]+)\.tsv")
 
-tasks = {'power', 'orientation'}
-parliaments = {'power': {'at', 'ba', 'be', 'bg', 'cz', 'dk', 'es',
-                         'es-ct', 'es-ga', 'es-pv', 'fi', 'fr', 'gb',
-                         'gr', 'hr', 'hu', 'it', 'lv', 'nl', 'pl',
-                         'pt', 'rs', 'si', 'tr', 'ua'},
-    'orientation': {'at', 'ba', 'be', 'bg', 'cz', 'dk', 'ee', 'es',
-                    'es-ct', 'es-ga', 'fi', 'fr', 'gb', 'gr', 'hr',
-                    'hu', 'is', 'it', 'lv', 'nl', 'no', 'pl', 'pt',
-                    'rs', 'se', 'si', 'tr', 'ua'}
-}
 
 def score(pred, task, parl, refdir=GOLD):
     goldfile = os.path.join(refdir,
-            '-'.join((task, parl, 'labels')) + '.tsv')
+            '-'.join((task, parl, 'test-labels')) + '.tsv')
     goldids, goldlabels = [], []
     with open(goldfile, 'rt') as f:
         csvr = csv.reader(f, delimiter='\t')
+        _ = next(csvr)
         for row in csvr:
             id_, lab = row
+            if lab == 'NA': continue
             goldids.append(id_)
             goldlabels.append(int(lab))
 
@@ -54,15 +47,11 @@ if __name__ == "__main__":
     ap.add_argument('--outdir', '-o', default=OUTD)
     args = ap.parse_args()
 
+
     print(args.reference, args.predictions, args.outdir)
     print(glob.glob(args.predictions + '/*'))
 
-#    with ZipFile(args.predictions) as zf:
-#        for f in zf.namelist():
-#            print(os.path.basename(f))
-     
-#     teamname}-{args.task}-{pcode}-predictions.tsv"
-    
+    tasks = ('power', 'orientation', 'populism')
     scores = dict()
     predfiles = os.path.join(args.predictions, "*")
     for predfile in glob.glob(predfiles):
@@ -79,26 +68,29 @@ if __name__ == "__main__":
             continue
         team, task = m.group('team'), m.group('task')
         parl, run =  m.group('parl'), m.group('run')
-        if task not in tasks\
-                or parl not in parliaments[m.group('task')]:
+        if task not in tasks:
             print(f"Skipping {fname}:", end=" ", file=sys.stderr)
-            print(f"Unknown task or parliament or task '{task}' is not"
-                  f" available for parliament '{parl}'.", file=sys.stderr)
+            print(f"Unknown task or parliament or task '{task}'.",
+                  file=sys.stderr)
+        if not parl_task[parl][task]:
+            print(f"Skipping {fname}:", end=" ", file=sys.stderr)
+            print(f"Task {task} is not available for parliament '{parl}'.",
+                  file=sys.stderr)
             continue
         print(f"Procesing {fname}.")
-        try:
-            with open(predfile, 'rt') as f:
-                pred = dict()
-                for line in f:
-                    id_, prob = line.strip().split('\t')
-                    pred[id_] = float(prob)
-            scores[(task, parl)] = score(pred, task, parl,
+#        try:
+        with open(predfile, 'rt') as f:
+            pred = dict()
+            for line in f:
+                id_, prob = line.strip().split('\t')
+                pred[id_] = float(prob)
+        scores[(task, parl)] = score(pred, task, parl,
                                          refdir=args.reference)
-        except:
-            print(f'Wrong file format {predfile}.', file=sys.stderr)
-            print('All rows of the prediction files should contain'
-                  'two columns(id, class/score) separated with a single tab.',
-                  file=sys.stderr)
+#        except:
+#            print(f'Wrong file format {predfile}.', file=sys.stderr)
+#            print('All rows of the prediction files should contain'
+#                  'two columns(id, class/score) separated with a single tab.',
+#                  file=sys.stderr)
 
     if len(scores) == 0:
         print(f'None of the input files are valid. No scores calcualted',
@@ -107,14 +99,18 @@ if __name__ == "__main__":
 
     with open(os.path.join(args.outdir, 'evaluation.prototext'), 'wt') as outf:
         ret = {}
-        ori_f, pow_f = 0.0, 0.0
+        ori_f, pow_f, pop_f = 0.0, 0.0, 0.0
         pscores = [scores[x] for x in scores if x[0] == 'power']
         if len(pscores) > 0:
             pow_p, pow_r, pow_f = np.mean(pscores, axis=0)
+        popscores = [scores[x] for x in scores if x[0] == 'populism']
+        if len(popscores) > 0:
+            pop_p, pop_r, pop_f = np.mean(popscores, axis=0)
         oscores = [scores[x] for x in scores if x[0] == 'orientation']
         if len(oscores) > 0:
             ori_p, ori_r, ori_f = np.mean(oscores, axis=0)
         ret['F1_orientation'] = ori_f
+        ret['F1_populism'] = pop_f
         ret['F1_power'] = pow_f
         for sc in sorted(scores):
             task, parl = sc
