@@ -48,14 +48,19 @@ def predict(pcode):
         # file with predictions.
         test_file = os.path.join(args.data_dir, f"{pcode}-test.tsv")
         if os.path.exists(test_file):
-            id_test, t_test, _ = read_data(test_file, task=task, testset=True)
+            id_test, t_test, _ = read_data(test_file, task=task,
+                                           return_na=True, testset=True)
             x_test = vec.transform(t_test)
-            test_pred = m.predict_proba(x_test)
+            if task in {'power', 'orientation'}: # binary use prob(pclass)
+                pclass = m.classes_.tolist().index(1)
+                test_pred = [pred[pclass] for pred in m.predict_proba(x_test)]
+            else: # multiclass use the class label
+                test_pred = m.predict(x_test)
             pred_file = f"{args.teamname}-{task}-{pcode}-predictions.tsv"
             os.makedirs(args.pred_dir, exist_ok=True)
             with open(os.path.join(args.pred_dir, pred_file), "wt") as fpred:
                 for i, p in enumerate(test_pred):
-                    print(f"{id_test[i]}\t{p[1]}", file=fpred)
+                    print(f"{id_test[i]}\t{p}", file=fpred)
     for task in args.task:
         if not parl_task[pcode][task]:
             print(f"{pcode}/{task}: skipping, no training data.")
@@ -87,6 +92,14 @@ def predict(pcode):
                 else:
                     t_trn, y_trn, t_val, y_val = read_data(train_file,
                                                            task=task)
+                if not t_trn:
+                    print(f"Skipping {pcode}/{task}: empty training set.")
+                    continue
+                if not t_val:
+                    print(f"Skipping {pcode}/{task}: empty validatoin set.")
+                    continue
+
+
                 if len(t_trn) == 0:
                     print(f"{pcode}/{task}: empty training set.")
                 vec = TfidfVectorizer(sublinear_tf=True, analyzer="char",

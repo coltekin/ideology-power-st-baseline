@@ -6,8 +6,9 @@ COPY requirements.txt /requirements.txt
 RUN python3 -m pip install -r  /requirements.txt
 
 COPY data.py /data.py
+COPY parliaments.py /parliaments.py
 COPY linear-baseline.py /linear-baseline.py
 
 COPY models/ /models/
 
-ENTRYPOINT [ "/linear-baseline.py", "-t", "orientation", "-t", "power", "-l", "/models", "all"]
+ENTRYPOINT [ "/linear-baseline.py", "-t", "orientation", "-t", "populism", "-t", "power", "-l", "/models", "all"]
