@@ -22,4 +22,28 @@ and test file predictions under `output/`,
 which are in the expected format for the submission.
 To run the baseline on the trial data add `-d sample-data` to the
 command line.
-Further information on submission system will be provided soon.
+
+## Submit to TIRA via Code-Submissions
+
+First, please ensure that your have a valid tira client installed via:
+
+```
+pip3 install --upgrade tira
+tira-cli verify-installation
+```
+
+Next, please test that your approach works on the toy dataset as expected (more details are available in the [documentation](https://docs.tira.io/participants/participate.html#submitting-your-submission)):
+
+```
+tira-cli code-submission --dry-run --path . --task ideology-and-power-identification-in-parliamentary-debates-2025 --dataset ideology-and-power-toy-dataset-20250505-training --command 'python3 /linear-baseline.py -l /models -t power -t orientation -t populism -p $outputDir -d $inputDataset all'
+```
+
+If this works as expected, you can omit the `--dry-run` argument to submit this baseline to TIRA, please run:
+
+```
+tira-cli code-submission --path . --task ideology-and-power-identification-in-parliamentary-debates-2025 --dataset ideology-and-power-toy-dataset-20250505-training --command 'python3 /linear-baseline.py -l /models -t power -t orientation -t populism -p $outputDir -d $inputDataset all'
+```
+
+## Submit to TIRA via Run-Submissions
+
+Will be added soon.
