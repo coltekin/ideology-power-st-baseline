@@ -1,4 +1,5 @@
-# You should select the python version matching on your system
+# Please use the configured devcontainer or select
+# the python version matching on your system
 # so that the models saved by joblib are compatible.
 FROM python:3-slim
 

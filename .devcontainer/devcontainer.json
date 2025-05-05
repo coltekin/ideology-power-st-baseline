@@ -1,0 +1,15 @@
+{
+  "image": "python:3-slim",
+  "postCreateCommand": "python3 -m pip install -r requirements.txt",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-toolsai.jupyter",
+        "ms-toolsai.datawrangler",
+        "ms-azuretools.vscode-docker"
+      ]
+    }
+  }
+}
