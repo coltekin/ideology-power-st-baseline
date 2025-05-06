@@ -46,4 +46,15 @@ tira-cli code-submission --path . --task ideology-and-power-identification-in-pa
 
 ## Submit to TIRA via Run-Submissions
 
-Will be added soon.
+Assuming you have made predictions for the test dataset in a directory `test-outputs`, you can upload via the command line:
+
+
+```
+pip3 install --upgrade tira
+tira-cli login --token YOUR-TOKEN-FROM-THE-UI
+tira-cli verify-installation
+
+tira-cli upload --dataset ideology-and-power-identification-20250504-test --directory test-outputs --system THE-NAME-OF-YOUR-SYSTEM
+```
+
+Alternatively, you can upload your data as a zip directory in the UI.
